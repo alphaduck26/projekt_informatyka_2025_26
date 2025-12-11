@@ -142,11 +142,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="menu.cpp" />
+    <ClCompile Include="paletka.cpp" />
+    <ClCompile Include="pilka.cpp" />
+    <ClCompile Include="stone.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="paletka.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Paletka.h" />
     <ClInclude Include="pilka.h" />
+    <ClInclude Include="Stone.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\..\..\arial.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

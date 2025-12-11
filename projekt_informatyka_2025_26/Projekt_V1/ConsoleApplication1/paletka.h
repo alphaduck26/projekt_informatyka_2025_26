@@ -9,25 +9,12 @@ private:
     sf::RectangleShape shape;
 
 public:
-    Paletka(float startX, float startY, float szer, float wys, float pred)
-        : x(startX), y(startY), szerokosc(szer), wysokosc(wys), predkosc(pred)
-    {
-        shape.setSize({ szerokosc, wysokosc });
-        shape.setOrigin(szerokosc / 2.f, wysokosc / 2.f);
-        shape.setPosition(x, y);
-        shape.setFillColor(sf::Color::Green);
-    }
+    Paletka(float startX, float startY, float szer, float wys, float speed);
 
-    void moveLeft() { x -= predkosc; shape.setPosition(x, y); }
-    void moveRight() { x += predkosc; shape.setPosition(x, y); }
-
-    void clampToBounds(float width) {
-        if (x - szerokosc / 2.f < 0) x = szerokosc / 2.f;
-        if (x + szerokosc / 2.f > width) x = width - szerokosc / 2.f;
-        shape.setPosition(x, y);
-    }
-
-    void draw(sf::RenderTarget& target) { target.draw(shape); }
+    void moveLeft();
+    void moveRight();
+    void clampToBounds(float width);
+    void draw(sf::RenderTarget& target);
 
     float getX() const { return x; }
     float getY() const { return y; }
