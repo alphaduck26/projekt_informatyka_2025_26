@@ -1,79 +1,59 @@
-﻿// main.cpp
-// Jeden wspólny program uruchamiający oba zadania:
-// 1) symulacja odbić piłki
-// 2) ruch paletki po osi X
-
+﻿#include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Pilka.h"
 #include "Paletka.h"
-
-using namespace std;
-
-void symulacjaPilki(string opis, Pilka p) {
-    cout << "\n=== " << opis << " ===\n";
-    const int W = 640;
-    const int H = 480;
-
-    for (int i = 1; i <= 30; i++) {
-        p.przesun();
-        string e = p.kolizjaSciana(W, H);
-
-        cout << "Krok " << i
-            << ": x=" << p.getX()
-            << ", y=" << p.getY()
-            << ", vx=" << p.getVx()
-            << ", vy=" << p.getVy();
-
-        if (!e.empty()) cout << " " << e;
-        cout << endl;
-    }
-}
-
-void symulacjaPaletki() {
-    cout << "\n=== Symulacja ruchu paletki ===\n";
-
-    const int W = 640;
-
-    Paletka pal(320, 450, 80, 10);
-
-    for (int i = 1; i <= 100; i++) {
-
-        if (i % 20 < 10)
-            pal.przesunLewo();
-        else
-            pal.przesunPrawo();
-
-        pal.ograniczRuch(W);
-
-        int half = pal.getSzerokosc() / 2;
-        bool lewa = (pal.getX() - half <= 0);
-        bool prawa = (pal.getX() + half >= W);
-
-        cout << "Krok " << i
-            << ": x=" << pal.getX()
-            << ", y=" << pal.getY();
-
-        if (lewa)  cout << " LEWA GRANICA";
-        if (prawa) cout << " PRAWA GRANICA";
-
-        cout << endl;
-    }
-}
+#include "Pilka.h"
 
 int main() {
+    const float WIDTH = 640.f;
+    const float HEIGHT = 480.f;
 
-    // === ZADANIE 1 – trzy demonstracje odbić piłki ===
-    Pilka p1(5, 200, -5, 0, 4);
-    symulacjaPilki("A) Odbicie od lewej/prawej sciany", p1);
+    sf::RenderWindow window({ (unsigned)WIDTH, (unsigned)HEIGHT }, "Arkanoid test");
+    window.setFramerateLimit(60);
 
-    Pilka p2(200, 5, 0, -6, 4);
-    symulacjaPilki("B) Odbicie od gornej/dolnej sciany", p2);
+    Paletka pal(320.f, 440.f, 100.f, 20.f, 8.f);
+    Pilka pilka(320.f, 200.f, 4.f, 3.f, 8.f);
 
-    Pilka p3(10, 10, -5, 4, 6);
-    symulacjaPilki("C) Kolejne odbicia pod katem", p3);
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
 
-    // === ZADANIE 2 – ruch paletki ===
-    symulacjaPaletki();
+        // Sterowanie paletką
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+            pal.moveLeft();
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+            pal.moveRight();
+        pal.clampToBounds(WIDTH);
+
+        // Aktualizacja piłki
+        pilka.move();
+        pilka.collideWalls(WIDTH, HEIGHT);
+        if (pilka.collidePaddle(pal))
+            std::cout << "HIT PADDLE\n";
+
+        // Sprawdzenie przegranej
+        if (pilka.getY() - pilka.getRadius() > HEIGHT) {
+            std::cout << "MISS! KONIEC GRY\n";
+            window.close();
+        }
+
+        // Debug info
+        static int frameCounter = 0;
+        if (++frameCounter % 30 == 0) {
+            std::cout << "x=" << pilka.getX()
+                << " y=" << pilka.getY()
+                << " vx=" << pilka.getVx()
+                << " vy=" << pilka.getVy() << std::endl;
+        }
+
+        // Rysowanie
+        window.clear(sf::Color(20, 20, 30));
+        pal.draw(window);
+        pilka.draw(window);
+        window.display();
+    }
 
     return 0;
 }
