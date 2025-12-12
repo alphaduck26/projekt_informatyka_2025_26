@@ -5,20 +5,19 @@
 
 class Menu {
 private:
-    std::vector<sf::Text> options;
-    int selectedItem;
+    std::vector<sf::Text> items;
     sf::Font font;
+    int selected;
     float startX, startY;
-    float verticalSpacing;
+    float spacing;
 
 public:
-    Menu(unsigned int windowWidth, unsigned int windowHeight);
+    Menu(unsigned int szerokoscOkna, unsigned int wysokoscOkna);
 
     void draw(sf::RenderTarget& target) const;
-
     void moveUp();
     void moveDown();
     void reset();
 
-    int getSelectedItem() const { return selectedItem; }
+    int getSelectedIndex() const { return selected; }
 };

@@ -1,59 +1,56 @@
 ﻿#include "Menu.h"
 #include <iostream>
 
-Menu::Menu(unsigned int windowWidth, unsigned int windowHeight)
-    : selectedItem(0)
+Menu::Menu(unsigned int szerokoscOkna, unsigned int wysokoscOkna)
+    : selected(0)
 {
-    // Załaduj font (musisz mieć plik arial.ttf w katalogu projektu)
     if (!font.loadFromFile("arial.ttf")) {
-        std::cerr << "Blad wczytania fontu arial.ttf" << std::endl;
+        std::cerr << "Cannot load font arial.ttf\n";
     }
 
-    // Odstępy i pozycja początkowa
-    const int numberOfOptions = 2;
-    verticalSpacing = static_cast<float>(windowHeight) / (numberOfOptions + 1);
-    startX = windowWidth / 2.f;
-    startY = verticalSpacing;
+    std::vector<std::string> labels = { "Nowa gra", "Wczytaj gre", "Wyjscie" };
+    items.clear();
 
-    // Polskie napisy w menu
-    std::vector<std::string> menuTexts = { "Nowa gra", "Wyjscie" };
+    startX = szerokoscOkna / 2.f;
+    spacing = static_cast<float>(wysokoscOkna) / (labels.size() + 1);
+    startY = spacing;
 
-    for (size_t i = 0; i < menuTexts.size(); ++i) {
-        sf::Text text;
-        text.setFont(font);
-        text.setString(menuTexts[i]);
-        text.setCharacterSize(30);
-        text.setFillColor(i == selectedItem ? sf::Color::Yellow : sf::Color::White);
-        text.setOrigin(text.getLocalBounds().width / 2.f, text.getLocalBounds().height / 2.f);
-        text.setPosition(startX, startY + i * verticalSpacing);
-        options.push_back(text);
+    for (size_t i = 0; i < labels.size(); ++i) {
+        sf::Text t;
+        t.setFont(font);
+        t.setString(labels[i]);
+        t.setCharacterSize(36);
+        t.setFillColor(i == static_cast<size_t>(selected) ? sf::Color::Yellow : sf::Color::White);
+
+        sf::FloatRect bounds = t.getLocalBounds();
+        t.setOrigin(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
+        t.setPosition(startX, startY + i * spacing);
+        items.push_back(t);
     }
 }
 
 void Menu::draw(sf::RenderTarget& target) const {
-    for (auto& option : options)
-        target.draw(option);
+    for (const auto& t : items) target.draw(t);
 }
 
 void Menu::moveUp() {
-    if (selectedItem > 0) {
-        options[selectedItem].setFillColor(sf::Color::White);
-        selectedItem--;
-        options[selectedItem].setFillColor(sf::Color::Yellow);
+    if (selected > 0) {
+        items[selected].setFillColor(sf::Color::White);
+        selected--;
+        items[selected].setFillColor(sf::Color::Yellow);
     }
 }
 
 void Menu::moveDown() {
-    if (selectedItem < static_cast<int>(options.size()) - 1) {
-        options[selectedItem].setFillColor(sf::Color::White);
-        selectedItem++;
-        options[selectedItem].setFillColor(sf::Color::Yellow);
+    if (selected < static_cast<int>(items.size()) - 1) {
+        items[selected].setFillColor(sf::Color::White);
+        selected++;
+        items[selected].setFillColor(sf::Color::Yellow);
     }
 }
 
 void Menu::reset() {
-    for (auto& option : options)
-        option.setFillColor(sf::Color::White);
-    selectedItem = 0;
-    options[selectedItem].setFillColor(sf::Color::Yellow);
+    for (auto& t : items) t.setFillColor(sf::Color::White);
+    selected = 0;
+    if (!items.empty()) items[0].setFillColor(sf::Color::Yellow);
 }

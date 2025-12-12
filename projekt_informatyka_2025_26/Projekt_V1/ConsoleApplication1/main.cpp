@@ -1,79 +1,95 @@
 ﻿#include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Game.h"
 #include "Menu.h"
+#include "Game.h"
+#include "GameState.h"
 
-enum class GameState { Menu, Playing, Exiting };
+int main() {
+    const unsigned int windowWidth = 640;
+    const unsigned int windowHeight = 480;
 
-int main()
-{
-    const unsigned int WIDTH = 640;
-    const unsigned int HEIGHT = 480;
-
-    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Arkanoid");
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Arkanoid");
     window.setFramerateLimit(60);
 
+    Menu menu(windowWidth, windowHeight);
     Game game;
-    Menu menu(WIDTH, HEIGHT);
 
-    GameState currentState = GameState::Menu;
+    enum class State { Menu, Playing, Exiting };
+    State state = State::Menu;
 
     sf::Clock clock;
 
-    while (window.isOpen())
-    {
-        sf::Time dt = clock.restart();
-
+    while (window.isOpen()) {
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
 
-            if (event.type == sf::Event::KeyPressed)
-            {
-                if (event.key.code == sf::Keyboard::Escape) {
-                    currentState = GameState::Menu;
-                }
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Escape)
+                    state = State::Menu;
+            }
 
-                if (event.key.code == sf::Keyboard::Enter) {
-                    if (currentState == GameState::Menu) {
-                        if (menu.getSelectedItem() == 0) {
-                            game.reset();
-                            currentState = GameState::Playing;
+            if (state == State::Menu) {
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Up) menu.moveUp();
+                    else if (event.key.code == sf::Keyboard::Down) menu.moveDown();
+                    else if (event.key.code == sf::Keyboard::Enter) {
+                        int sel = menu.getSelectedIndex();
+                        if (sel == 0) {
+                            game.restart();
+                            state = State::Playing;
                         }
-                        else if (menu.getSelectedItem() == 1) {
-                            currentState = GameState::Exiting;
+                        else if (sel == 1) {
+                            GameState gs;
+                            if (gs.loadFromFile("zapis.txt")) {
+                                gs.apply(game.getPaddle(), game.getBall(), game.getBlocks(),
+                                    game.getBlockWidth(), game.getBlockHeight());
+                                state = State::Playing;
+                                std::cout << "Loaded saved game\n";
+                            }
+                            else {
+                                std::cout << "No save file found (zapis.txt)\n";
+                            }
+                        }
+                        else if (sel == 2) {
+                            window.close();
                         }
                     }
                 }
-
-                if (currentState == GameState::Menu) {
-                    if (event.key.code == sf::Keyboard::Up)
-                        menu.moveUp();
-                    else if (event.key.code == sf::Keyboard::Down)
-                        menu.moveDown();
+            }
+            else if (state == State::Playing) {
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::F5) {
+                        GameState gs;
+                        gs.capture(game.getPaddle(), game.getBall(), game.getBlocks());
+                        if (gs.saveToFile("zapis.txt")) std::cout << "Game saved (zapis.txt)\n";
+                        else std::cout << "Save error!\n";
+                    }
                 }
             }
         }
 
-        if (currentState == GameState::Playing) {
+        sf::Time dt = clock.restart();
+
+        if (state == State::Playing) {
             game.update(dt);
-            if (game.isGameOver())
-                currentState = GameState::Menu;
+            for (auto& blok : game.getBlocks()) {
+                if (blok.isAlive()) {
+                    blok.collideWithBall(game.getBall());
+                }
+            }
+
+            if (game.isGameOver()) {
+                state = State::Menu;
+                menu.reset();
+            }
         }
 
         window.clear(sf::Color(20, 20, 30));
-
-        if (currentState == GameState::Menu)
-            menu.draw(window);
-        else if (currentState == GameState::Playing)
-            game.render(window);
-
+        if (state == State::Menu) menu.draw(window);
+        else if (state == State::Playing) game.render(window);
         window.display();
-
-        if (currentState == GameState::Exiting)
-            window.close();
     }
 
     return 0;

@@ -1,23 +1,34 @@
 ﻿#pragma once
 #include <SFML/Graphics.hpp>
-#include "Pilka.h"
+class Ball; // forward declaration
 
 class Stone {
 private:
     float x, y;
-    float width, height;
+    float szerokosc, wysokosc;
+    int hp;
     bool alive;
-    sf::RectangleShape shape;
+    sf::RectangleShape ksztalt;
 
 public:
-    Stone(float startX, float startY, float w, float h, sf::Color color);
+    Stone();
+    Stone(float x_, float y_, float szer_, float wys_, int hp_, const sf::Color& kolor = sf::Color::White);
 
     void draw(sf::RenderTarget& target);
-    bool collide(const Pilka& pilka);
+    bool isAlive() const;
+    void setAlive(bool val);
 
-    bool isAlive() const { return alive; }
-    void setAlive(bool val) { alive = val; }
+    int getHP() const;
+    void setHP(int val);
 
-    void setOutlineColor(const sf::Color& color) { shape.setOutlineColor(color); }
-    void setOutlineThickness(float thickness) { shape.setOutlineThickness(thickness); }
+    void hit();
+
+    void setOutlineColor(const sf::Color& kolor);
+    void setOutlineThickness(float t);
+
+    float getX() const;
+    float getY() const;
+    sf::FloatRect getBounds() const;
+
+    void collideWithBall(Ball& pilka);
 };

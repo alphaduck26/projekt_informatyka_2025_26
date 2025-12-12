@@ -143,17 +143,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameState.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="menu.cpp" />
-    <ClCompile Include="paletka.cpp" />
-    <ClCompile Include="pilka.cpp" />
-    <ClCompile Include="stone.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Paddle.cpp" />
+    <ClCompile Include="Ball.cpp" />
+    <ClCompile Include="Stone.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameState.h" />
     <ClInclude Include="Menu.h" />
-    <ClInclude Include="Paletka.h" />
-    <ClInclude Include="pilka.h" />
+    <ClInclude Include="Paddle.h" />
+    <ClInclude Include="Ball.h" />
     <ClInclude Include="Stone.h" />
   </ItemGroup>
   <ItemGroup>

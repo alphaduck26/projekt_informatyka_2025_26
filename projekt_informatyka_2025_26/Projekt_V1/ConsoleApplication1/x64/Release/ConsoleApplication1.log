@@ -1,8 +1,13 @@
-﻿  main.cpp
-  menu.cpp
+﻿  Game.cpp
+  GameState.cpp
+  main.cpp
+  Menu.cpp
+  Paddle.cpp
+  Ball.cpp
+  Stone.cpp
   Создание кода
-  3 of 391 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+  186 of 580 functions (32.1%) were compiled, the rest were copied from previous compilation.
+    55 functions were new in current compilation
+    33 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   ConsoleApplication1.vcxproj -> C:\Users\Comfy\OneDrive\Рабочий стол\Informatyka\projekt_informatyka_2025_26\Projekt_V1\x64\Release\ConsoleApplication1.exe
