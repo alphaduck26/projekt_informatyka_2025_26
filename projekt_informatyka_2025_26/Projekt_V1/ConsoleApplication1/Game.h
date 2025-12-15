@@ -1,34 +1,44 @@
 ﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "Paddle.h"
 #include "Ball.h"
+#include "Paddle.h"
 #include "Stone.h"
 
 class Game {
 private:
-    Paddle m_paddle;
-    Ball m_ball;
-    std::vector<Stone> m_bloki;
-    bool m_gameOver;
+    Ball pilka;
+    Paddle paletka;
+    std::vector<Stone> bloki;
 
-    float m_blockWidth;
-    float m_blockHeight;
+    int score;
+    float scoreMultiplier;
+
+    float szerokoscBloku;
+    float wysokoscBloku;
 
 public:
     Game();
+    bool isBallLost(float windowHeight);
+    void reset(float mnoznikPunktow);
+    void update(float szerokoscOkna, float wysokoscOkna);
+    void draw(sf::RenderTarget& target) const;
 
-    void restart();
-    void update(sf::Time dt);
-    void render(sf::RenderTarget& target);
+    void setScore(int s);
+    int getScore() const;
 
-    bool isGameOver() const;
+    // gettery – TYLKO deklaracje
+    Ball& getBall();
+    Paddle& getPaddle();
+    std::vector<Stone>& getStones();
 
-    // getters for GameState
-    Paddle& getPaddle() { return m_paddle; }
-    Ball& getBall() { return m_ball; }
-    std::vector<Stone>& getBlocks() { return m_bloki; }
+    const Ball& getBall() const;
+    const Paddle& getPaddle() const;
+    const std::vector<Stone>& getStones() const;
 
-    float getBlockWidth() const { return m_blockWidth; }
-    float getBlockHeight() const { return m_blockHeight; }
+    void setScoreMultiplier(float m);
+    float getScoreMultiplier() const;
+
+    float getBlockWidth() const;
+    float getBlockHeight() const;
 };

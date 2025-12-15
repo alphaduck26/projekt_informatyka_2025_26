@@ -1,86 +1,200 @@
 ﻿#include "Game.h"
 #include <algorithm>
-#include <iostream>
-
-static constexpr float WINDOW_WIDTH = 640.f;
-static constexpr float WINDOW_HEIGHT = 480.f;
+#include <cmath>
 
 Game::Game()
-    : m_paddle(320.f, 440.f, 120.f, 20.f, 8.f),
-    m_ball(320.f, 240.f, 3.5f, -3.5f, 8.f)
+    : score(0),
+    scoreMultiplier(1.f),
+    szerokoscBloku(64.f),
+    wysokoscBloku(30.f)
 {
-    restart();
+    reset(1.f);
 }
 
-void Game::restart() {
-    m_gameOver = false;
+void Game::reset(float mnoznikPunktow)
+{
+    score = 0;
+    scoreMultiplier = mnoznikPunktow;
 
-    m_paddle = Paddle(320.f, 440.f, 120.f, 20.f, 8.f);
-    m_ball = Ball(320.f, 240.f, 3.5f, -3.5f, 8.f);
+    paletka.setPosition({ 320.f, 440.f });
+    bloki.clear();
 
-    const int kolumny = 10;
-    const int wiersze = 5;
-    m_blockWidth = WINDOW_WIDTH / static_cast<float>(kolumny);
-    m_blockHeight = 30.f;
+    pilka.reset(
+        { paletka.getX(), paletka.getY() - paletka.getBounds().height / 2.f - pilka.getRadius() - 1.f },
+        { 0.f, -5.f } // początkowa prędkość w górę
+    );
 
-    m_bloki.clear();
-    const float startY = 60.f;
+    const int cols = 10;
+    const int rows = 5;
 
-    for (int r = 0; r < wiersze; ++r) {
-        for (int c = 0; c < kolumny; ++c) {
-            float cx = c * m_blockWidth + m_blockWidth / 2.f;
-            float cy = startY + r * m_blockHeight + m_blockHeight / 2.f;
-            sf::Color kolor;
-            switch (r % 4) {
-            case 0: kolor = sf::Color::Red; break;
-            case 1: kolor = sf::Color::Yellow; break;
-            case 2: kolor = sf::Color::Green; break;
-            default: kolor = sf::Color::Blue; break;
-            }
-            m_bloki.emplace_back(cx, cy, m_blockWidth, m_blockHeight, 1, kolor);
+    szerokoscBloku = 640.f / cols;
+    wysokoscBloku = 30.f;
+
+    for (int r = 0; r < rows; ++r)
+    {
+        for (int c = 0; c < cols; ++c)
+        {
+            int hp = 3 - (r % 3);
+
+            sf::Color kolor =
+                (hp == 3) ? sf::Color::Blue :
+                (hp == 2) ? sf::Color::Yellow :
+                sf::Color::Red;
+
+            bloki.emplace_back(
+                c * szerokoscBloku + szerokoscBloku / 2.f,
+                60.f + r * wysokoscBloku,
+                szerokoscBloku,
+                wysokoscBloku,
+                hp,
+                kolor
+            );
         }
     }
 }
 
-void Game::update(sf::Time dt) {
-    if (m_gameOver) return;
+bool Game::isBallLost(float windowHeight)
+{
+    return pilka.getY() - pilka.getRadius() > windowHeight;
+}
 
-    m_ball.move();
-    m_ball.collideWalls(WINDOW_WIDTH, WINDOW_HEIGHT);
+void Game::update(float szerokoscOkna, float wysokoscOkna)
+{
+    pilka.update();
+    paletka.update(szerokoscOkna);
 
-    // paddle control
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-        m_paddle.moveLeft();
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-        m_paddle.moveRight();
-    m_paddle.clampToBounds(WINDOW_WIDTH);
+    sf::FloatRect p = pilka.getBounds();
 
-    // bounce from paddle
-    if (m_ball.getBounds().intersects(m_paddle.getBounds()) && m_ball.getPredkoscY() > 0.f) {
-        m_ball.bounceFromPaddle(m_paddle);
+    if (p.left <= 0 || p.left + p.width >= szerokoscOkna)
+        pilka.bounceX();
+
+    if (p.top <= 0)
+        pilka.bounceY();
+
+    // odbicie od paletki (kąt zależny od miejsca)
+    if (pilka.getBounds().intersects(paletka.getBounds()))
+    {
+        float offset = pilka.getX() - paletka.getX();
+        float halfWidth = paletka.getBounds().width / 2.f;
+
+        float angle = (offset / halfWidth) * 75.f;
+        float rad = angle * 3.14159265f / 180.f;
+
+        float speed = std::sqrt(
+            pilka.getVx() * pilka.getVx() +
+            pilka.getVy() * pilka.getVy()
+        );
+
+        pilka.reset(
+            { pilka.getX(), pilka.getY() },
+            { speed * std::sin(rad), -speed * std::cos(rad) }
+        );
     }
 
-    // blocks collision
-    for (auto& blok : m_bloki) {
-        if (blok.isAlive()) {
-            blok.collideWithBall(m_ball);
+    // kolizje z blokami
+    for (auto& blk : bloki)
+    {
+        if (!blk.isAlive())
+            continue;
+
+        if (blk.collideWithBall(pilka.getBounds()))
+        {
+            blk.hit();
+
+            sf::FloatRect b = blk.getBounds();
+            sf::FloatRect k = pilka.getBounds();
+
+            float overlapX = std::min(
+                (k.left + k.width) - b.left,
+                (b.left + b.width) - k.left
+            );
+
+            float overlapY = std::min(
+                (k.top + k.height) - b.top,
+                (b.top + b.height) - k.top
+            );
+
+            if (overlapX < overlapY)
+                pilka.bounceX();
+            else
+                pilka.bounceY();
+
+            int hp = blk.getHP();
+            if (hp == 2) blk.setFillColor(sf::Color::Yellow);
+            if (hp == 1) blk.setFillColor(sf::Color::Red);
+
+            score += static_cast<int>(10 * scoreMultiplier);
+            break;
         }
     }
 
-    // remove dead blocks
-    m_bloki.erase(std::remove_if(m_bloki.begin(), m_bloki.end(),
-        [](const Stone& s) { return !s.isAlive(); }), m_bloki.end());
-
-    // check game over
-    if (m_ball.getY() - m_ball.getRadius() > WINDOW_HEIGHT) {
-        m_gameOver = true;
-    }
+    bloki.erase(
+        std::remove_if(
+            bloki.begin(),
+            bloki.end(),
+            [](const Stone& s) { return !s.isAlive(); }
+        ),
+        bloki.end()
+    );
 }
 
-void Game::render(sf::RenderTarget& target) {
-    m_paddle.draw(target);
-    m_ball.draw(target);
-    for (auto& b : m_bloki) b.draw(target);
+void Game::draw(sf::RenderTarget& target) const
+{
+    paletka.draw(target);
+    pilka.draw(target);
+
+    for (const auto& b : bloki)
+        b.draw(target);
 }
 
-bool Game::isGameOver() const { return m_gameOver; }
+// ===================== GETTERY / SETTERY =====================
+
+int Game::getScore() const
+{
+    return score;
+}
+
+void Game::setScore(int s)
+{
+    score = s;
+}
+
+Ball& Game::getBall()
+{
+    return pilka;
+}
+
+const Ball& Game::getBall() const
+{
+    return pilka;
+}
+
+Paddle& Game::getPaddle()
+{
+    return paletka;
+}
+
+const Paddle& Game::getPaddle() const
+{
+    return paletka;
+}
+
+std::vector<Stone>& Game::getStones()
+{
+    return bloki;
+}
+
+const std::vector<Stone>& Game::getStones() const
+{
+    return bloki;
+}
+
+float Game::getBlockWidth() const
+{
+    return szerokoscBloku;
+}
+
+float Game::getBlockHeight() const
+{
+    return wysokoscBloku;
+}

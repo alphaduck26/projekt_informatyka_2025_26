@@ -1,46 +1,41 @@
 #include "Paddle.h"
+#include <SFML/Window.hpp>
 
-Paddle::Paddle(float startX, float startY, float szer, float wys, float pred)
-    : x(startX), y(startY), szerokosc(szer), wysokosc(wys), predkosc(pred)
-{
-    ksztalt.setSize({ szerokosc, wysokosc });
-    ksztalt.setOrigin(szerokosc / 2.f, wysokosc / 2.f);
-    ksztalt.setPosition(x, y);
-    ksztalt.setFillColor(sf::Color::Green);
+Paddle::Paddle() : predkosc(6.f) {
+    shape.setSize({ 120.f, 20.f });
+    shape.setOrigin(60.f, 10.f);
+    shape.setPosition(320.f, 440.f);
+    shape.setFillColor(sf::Color::Green);
 }
 
-void Paddle::moveLeft() {
-    x -= predkosc;
-    ksztalt.setPosition(x, y);
+void Paddle::setPosition(const sf::Vector2f& pozycja) { shape.setPosition(pozycja); }
+void Paddle::setSpeed(float nowaPredkosc) { predkosc = nowaPredkosc; }
+
+void Paddle::moveLeft() { shape.move(-predkosc, 0.f); }
+void Paddle::moveRight() { shape.move(predkosc, 0.f); }
+
+void Paddle::update(float szerokoscOkna) {
+    handleInput();
+    sf::Vector2f pos = shape.getPosition();
+    float polowa = shape.getSize().x / 2.f;
+    if (pos.x - polowa < 0.f) shape.setPosition(polowa, pos.y);
+    if (pos.x + polowa > szerokoscOkna) shape.setPosition(szerokoscOkna - polowa, pos.y);
 }
 
-void Paddle::moveRight() {
-    x += predkosc;
-    ksztalt.setPosition(x, y);
+//void Paddle::setSpeed(float s) {
+  //  predkosc = s;
+//}
+
+
+void Paddle::handleInput() {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        moveLeft();
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        moveRight();
 }
 
-void Paddle::clampToBounds(float szerokoscOkna) {
-    if (x - szerokosc / 2.f < 0.f)
-        x = szerokosc / 2.f;
-    if (x + szerokosc / 2.f > szerokoscOkna)
-        x = szerokoscOkna - szerokosc / 2.f;
-
-    ksztalt.setPosition(x, y);
-}
-
-void Paddle::draw(sf::RenderTarget& target) const {
-    target.draw(ksztalt);
-}
-
-float Paddle::getX() const { return x; }
-float Paddle::getY() const { return y; }
-float Paddle::getWidth() const { return szerokosc; }
-float Paddle::getHeight() const { return wysokosc; }
-
-sf::FloatRect Paddle::getBounds() const { return ksztalt.getGlobalBounds(); }
-
-void Paddle::setPosition(const sf::Vector2f& pozycja) {
-    x = pozycja.x;
-    y = pozycja.y;
-    ksztalt.setPosition(x, y);
-}
+void Paddle::draw(sf::RenderTarget& target) const { target.draw(shape); }
+sf::FloatRect Paddle::getBounds() const { return shape.getGlobalBounds(); }
+sf::Vector2f Paddle::getPosition() const { return shape.getPosition(); }
+float Paddle::getX() const { return shape.getPosition().x; }
+float Paddle::getY() const { return shape.getPosition().y; }

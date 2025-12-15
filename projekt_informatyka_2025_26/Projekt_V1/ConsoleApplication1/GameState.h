@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include "Paddle.h"
-#include "Ball.h"
+#include "Game.h"
 #include "Stone.h"
 
 struct StoneData {
@@ -15,14 +14,13 @@ class GameState {
 private:
     float paddleX, paddleY;
     float ballX, ballY;
-    float ballPredkoscX, ballPredkoscY;
-    float ballRadius;
-    std::vector<StoneData> stonesData;
+    int score;
+    std::vector<StoneData> stones;
 
 public:
-    void capture(Paddle& paletka, Ball& pilka, std::vector<Stone>& bloki);
-    void apply(Paddle& paletka, Ball& pilka, std::vector<Stone>& bloki,
-        float blockWidth, float blockHeight);
+    void capture(const Game& game);
+    void apply(Game& game, float speedMultiplier);
+
     bool saveToFile(const std::string& filename);
     bool loadFromFile(const std::string& filename);
 };

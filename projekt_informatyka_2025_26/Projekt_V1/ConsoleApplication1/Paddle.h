@@ -3,25 +3,26 @@
 
 class Paddle {
 private:
-    float x, y;
-    float szerokosc, wysokosc;
+    sf::RectangleShape shape;
     float predkosc;
-    sf::RectangleShape ksztalt;
 
 public:
-    Paddle(float startX, float startY, float szer, float wys, float pred);
+    Paddle();
+
+    void update(float szerokoscOkna);
+    void draw(sf::RenderTarget& target) const;
 
     void moveLeft();
     void moveRight();
-    void clampToBounds(float szerokoscOkna);
 
-    void draw(sf::RenderTarget& target) const;
-
-    float getX() const;
-    float getY() const;
-    float getWidth() const;
-    float getHeight() const;
+   // void setSpeed(float s);
+    void setSpeed(float nowaPredkosc);
+    void setPosition(const sf::Vector2f& pozycja);
 
     sf::FloatRect getBounds() const;
-    void setPosition(const sf::Vector2f& pozycja);
+    sf::Vector2f getPosition() const;
+    float getX() const;
+    float getY() const;
+
+    void handleInput();
 };
